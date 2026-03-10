@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>How AI Reads 1,000 Pages in Seconds — And What's Really Happening Inside</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #0d0d0d;
+    --paper: #f5f0e8;
+    --accent: #e84b2c;
+    --muted: #6b6456;
+    --highlight: #ffd84d;
+    --border: #c8bfac;
+    --code-bg: #1a1a1a;
+    --code-text: #a8ff78;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* ── BANNER ── */
+  .banner {
+    position: relative;
+    width: 100%;
+    min-height: 90vh;
+    background: var(--ink);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 3rem 5%;
+    overflow: hidden;
+  }
+
+  .banner-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .banner-noise {
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
+
+  /* floating doc lines decoration */
+  .doc-lines {
+    position: absolute;
+    top: 8%;
+    right: 5%;
+    width: 320px;
+    opacity: 0.12;
+    animation: drift 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes drift {
+    from { transform: translateY(0px) rotate(-1deg); }
+    to   { transform: translateY(18px) rotate(1deg); }
+  }
+
+  .doc-line {
+    height: 2px;
+    background: #fff;
+    margin: 10px 0;
+    border-radius: 2px;
+  }
+  .doc-line:nth-child(odd)  { width: 100%; }
+  .doc-line:nth-child(even) { width: 72%; }
+  .doc-line:nth-child(3n)   { width: 55%; opacity: 0.6; }
+
+  /* neural dots */
+  .neural {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+  }
+
+  .node {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0;
+    animation: pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 0; transform: scale(0.8); }
+    50%      { opacity: 0.6; transform: scale(1.2); }
+  }
+
+  .banner-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    position: relative;
+    z-index: 2;
+    animation: fadeUp 1s ease forwards;
+    opacity: 0;
+  }
+
+  .banner-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3.2rem, 9vw, 8rem);
+    color: #fff;
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    max-width: 900px;
+    position: relative;
+    z-index: 2;
+    animation: fadeUp 1s ease 0.15s forwards;
+    opacity: 0;
+  }
+
+  .banner-title .accent-word {
+    color: var(--accent);
+    display: inline;
+  }
+
+  .banner-subtitle {
+    margin-top: 1.5rem;
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.6);
+    max-width: 600px;
+    line-height: 1.6;
+    position: relative;
+    z-index: 2;
+    animation: fadeUp 1s ease 0.3s forwards;
+    opacity: 0;
+  }
+
+  .banner-meta {
+    margin-top: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    position: relative;
+    z-index: 2;
+    animation: fadeUp 1s ease 0.45s forwards;
+    opacity: 0;
+  }
+
+  .banner-meta span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.1em;
+  }
+
+  .banner-meta .dot { color: var(--accent); font-size: 1.2rem; }
+
+  .banner-tag {
+    display: inline-block;
+    padding: 0.25rem 0.9rem;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border-radius: 2px;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2.5rem;
+    right: 5%;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    z-index: 2;
+    writing-mode: vertical-rl;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .scroll-hint::before {
+    content: '';
+    display: block;
+    width: 1px;
+    height: 50px;
+    background: var(--accent);
+    opacity: 0.5;
+    animation: scrollLine 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollLine {
+    0%,100% { transform: scaleY(1); opacity: 0.5; }
+    50%      { transform: scaleY(0.4); opacity: 0.2; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── ARTICLE BODY ── */
+  .article-wrapper {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 5rem 2rem 4rem;
+  }
+
+  /* drop cap */
+  .lead-paragraph::first-letter {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 5.5rem;
+    line-height: 0.82;
+    float: left;
+    margin-right: 0.12em;
+    margin-top: 0.08em;
+    color: var(--accent);
+  }
+
+  p {
+    margin-bottom: 1.5rem;
+    color: #1a1710;
+  }
+
+  p + p { text-indent: 1.5em; }
+
+  /* headings */
+  h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.6rem;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    margin: 3.5rem 0 1rem;
+    line-height: 1;
+    position: relative;
+    padding-left: 1.2rem;
+  }
+
+  h2::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.1em; bottom: 0.1em;
+    width: 4px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 2.5rem 0 0.6rem;
+    font-style: italic;
+  }
+
+  /* pull quotes */
+  blockquote {
+    margin: 3rem -2rem;
+    padding: 2.5rem 2rem 2.5rem 2.5rem;
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Fraunces', serif;
+    font-size: 1.55rem;
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.45;
+    border-left: 5px solid var(--accent);
+    position: relative;
+  }
+
+  blockquote::before {
+    content: '\201C';
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 6rem;
+    color: var(--accent);
+    position: absolute;
+    top: -0.2rem;
+    left: 0.8rem;
+    line-height: 1;
+    opacity: 0.4;
+  }
+
+  blockquote p {
+    color: #fff;
+    text-indent: 0 !important;
+    margin: 0;
+  }
+
+  /* code inline */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82em;
+    background: #e8e2d6;
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    color: #b83420;
+  }
+
+  /* code block */
+  pre {
+    background: var(--code-bg);
+    padding: 1.5rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 2rem 0;
+    border-left: 3px solid var(--code-text);
+  }
+
+  pre code {
+    background: transparent;
+    color: var(--code-text);
+    font-size: 0.82rem;
+    padding: 0;
+  }
+
+  /* concept callout boxes */
+  .concept-box {
+    margin: 2.5rem 0;
+    border: 1px solid var(--border);
+    padding: 1.5rem 1.8rem;
+    background: #fff;
+    position: relative;
+  }
+
+  .concept-box::before {
+    content: attr(data-label);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    position: absolute;
+    top: -0.55em;
+    left: 1rem;
+    background: #fff;
+    padding: 0 0.4rem;
+  }
+
+  .concept-box p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--muted);
+    text-indent: 0 !important;
+  }
+
+  /* term highlight */
+  .term {
+    background: var(--highlight);
+    padding: 0.05em 0.25em;
+    font-style: normal;
+  }
+
+  /* pipeline diagram */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 3rem 0;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .pipe-step {
+    flex: 1;
+    min-width: 90px;
+    text-align: center;
+    padding: 1rem 0.5rem;
+    background: var(--ink);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    position: relative;
+  }
+
+  .pipe-step::after {
+    content: '▶';
+    position: absolute;
+    right: -0.6em;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 1rem;
+    z-index: 1;
+  }
+
+  .pipe-step:last-child::after { display: none; }
+
+  .pipe-step .pipe-num {
+    display: block;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  /* stat callout */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin: 2.5rem 0;
+    border: 1px solid var(--border);
+  }
+
+  .stat-cell {
+    background: #fff;
+    padding: 1.5rem 1rem;
+    text-align: center;
+  }
+
+  .stat-cell .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.8rem;
+    color: var(--accent);
+    display: block;
+    line-height: 1;
+  }
+
+  .stat-cell .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 0.3rem;
+    display: block;
+  }
+
+  /* divider */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 3rem 0;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+  }
+
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* references */
+  .references {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--ink);
+  }
+
+  .references h2 {
+    font-size: 1.8rem;
+    margin-top: 0;
+  }
+
+  .ref-list {
+    list-style: none;
+    counter-reset: ref;
+  }
+
+  .ref-list li {
+    counter-increment: ref;
+    padding: 0.6rem 0 0.6rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.6;
+    position: relative;
+  }
+
+  .ref-list li::before {
+    content: '[' counter(ref) ']';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* outro */
+  .outro {
+    background: var(--ink);
+    color: #fff;
+    padding: 3.5rem 2rem;
+    margin: 4rem -2rem 0;
+    text-align: center;
+  }
+
+  .outro p {
+    color: rgba(255,255,255,0.7);
+    max-width: 580px;
+    margin: 0 auto 1rem;
+    text-indent: 0 !important;
+    font-size: 1rem;
+  }
+
+  .outro .outro-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.8rem;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  sup {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62em;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  strong { font-weight: 700; }
+
+  em { font-style: italic; color: var(--muted); }
+
+  /* ── responsive ── */
+  @media (max-width: 640px) {
+    blockquote { margin: 2rem 0; }
+    .stat-row { grid-template-columns: 1fr; }
+    .pipeline { flex-direction: column; gap: 4px; }
+    .pipe-step::after { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ BANNER ═══════════════════════════════ -->
+<header class="banner">
+  <div class="banner-grid"></div>
+  <div class="banner-noise"></div>
+
+  <!-- floating document lines -->
+  <div class="doc-lines" aria-hidden="true">
+    <div class="doc-line"></div><div class="doc-line"></div>
+    <div class="doc-line"></div><div class="doc-line"></div>
+    <div class="doc-line"></div><div class="doc-line"></div>
+    <div class="doc-line"></div><div class="doc-line"></div>
+    <div class="doc-line"></div><div class="doc-line"></div>
+    <div class="doc-line"></div><div class="doc-line"></div>
+  </div>
+
+  <!-- neural pulse nodes -->
+  <div class="neural" aria-hidden="true">
+    <div class="node" style="width:8px;height:8px;top:20%;left:30%;animation-delay:0s;"></div>
+    <div class="node" style="width:5px;height:5px;top:35%;left:55%;animation-delay:1.2s;"></div>
+    <div class="node" style="width:10px;height:10px;top:55%;left:72%;animation-delay:2.4s;"></div>
+    <div class="node" style="width:6px;height:6px;top:70%;left:40%;animation-delay:0.8s;"></div>
+    <div class="node" style="width:4px;height:4px;top:15%;left:65%;animation-delay:3s;"></div>
+    <div class="node" style="width:7px;height:7px;top:80%;left:20%;animation-delay:1.8s;"></div>
+  </div>
+
+  <div class="banner-eyebrow">Deep Dive · AI Systems · Language Models</div>
+
+  <h1 class="banner-title">
+    How AI Reads<br>
+    <span class="accent-word">1,000 Pages</span><br>
+    in Seconds
+  </h1>
+
+  <p class="banner-subtitle">
+    What actually happens inside an AI system when you throw a massive document at it — the science, the engineering, and why it still gets things wrong.
+  </p>
+
+  <div class="banner-meta">
+    <span class="banner-tag">Long Read</span>
+    <span class="dot">·</span>
+    <span>~18 min read</span>
+    <span class="dot">·</span>
+    <span>RAG · Embeddings · Context Windows · Transformers</span>
+  </div>
+
+  <div class="scroll-hint" aria-hidden="true">scroll</div>
+</header>
+
+<!-- ═══════════════════════════════ ARTICLE ═══════════════════════════════ -->
+<article class="article-wrapper">
+
+  <!-- INTRO -->
+  <p class="lead-paragraph">
+    You paste a 200-page PDF into an AI chat. Seconds later, you get a clean, confident summary. It even pulls a specific line from page 147. That feels like magic. But there's a whole machine running underneath it — one that chunks, embeds, retrieves, ranks, and generates, all before a single word shows up on your screen.
+  </p>
+
+  <p>
+    This article breaks that machine open. We'll walk through how modern AI systems actually ingest long documents — what "reading" means at a technical level — and what it takes to turn a pile of raw text into a highly accurate output. We'll also be honest about where it still breaks.
+  </p>
+
+  <p>
+    This is not just about one tool or one model. This is about a set of ideas and architectures that sit underneath most production AI systems dealing with long-form content today.
+  </p>
+
+  <div class="divider">§ the problem</div>
+
+  <!-- SECTION 1 -->
+  <h2>The Core Problem With Long Documents</h2>
+
+  <p>
+    Language models don't "read" the way humans do. There is no scroll bar. There is no memory of what they read last Tuesday. They process text as a flat sequence of tokens — small chunks of characters — and they do it all at once, inside something called a <span class="term">context window</span>.
+  </p>
+
+  <p>
+    The context window is the total amount of text a model can "see" at one time. Think of it like working memory. Everything inside it is available. Everything outside it doesn't exist to the model.
+  </p>
+
+  <div class="concept-box" data-label="Core Concept">
+    <p><strong>Context Window</strong> — the maximum number of tokens a model can process in a single pass. GPT-4 Turbo goes up to 128K tokens. Claude 3 goes up to 200K. Gemini 1.5 Pro pushed this to 1 million tokens. One token ≈ 0.75 words on average, so 128K tokens ≈ roughly 96,000 words — or a full novel.<sup>[1]</sup></p>
+  </div>
+
+  <p>
+    So the obvious fix seems simple: just make the context window bigger. Throw the whole document in. Done, right?
+  </p>
+
+  <p>
+    Not quite. The problem isn't just size. It's <em>attention degradation</em>.
+  </p>
+
+  <h3>The Lost-in-the-Middle Effect</h3>
+
+  <p>
+    Research from Stanford and other groups showed something deeply uncomfortable about long-context models: they perform well on information at the <strong>beginning</strong> and <strong>end</strong> of a long document, but accuracy drops significantly for content buried in the middle.<sup>[2]</sup> This is called the "lost-in-the-middle" phenomenon.
+  </p>
+
+  <p>
+    It makes intuitive sense once you understand how attention works. The transformer architecture — which underlies almost all modern language models — uses a mechanism where every token "attends" to every other token. Over long sequences, the signal-to-noise ratio degrades. Important information mid-document gets drowned out.
+  </p>
+
+  <blockquote>
+    <p>A longer context window doesn't mean better comprehension. It means more text the model can technically fit — not more text the model will actually use well.</p>
+  </blockquote>
+
+  <p>
+    This is why stuffing a 500-page legal contract directly into a prompt and asking "is there a non-compete clause?" often fails. The model technically "saw" every page. But what it paid attention to is a different story.
+  </p>
+
+  <div class="divider">§ ingestion</div>
+
+  <h2>Step One: Ingestion and Parsing</h2>
+
+  <p>
+    Before anything smart happens, the raw document has to be turned into clean, usable text. This sounds trivial. It isn't.
+  </p>
+
+  <p>
+    A PDF is not a text file. It's a rendering instruction set — it describes where ink goes on a page, not what the words mean or how they flow. Extracting text from a PDF often means fighting with column layouts, footnotes mid-sentence, headers and footers bleeding into content, embedded images that <em>look</em> like text but aren't, and scanned documents that are just pixel images with no text layer at all.
+  </p>
+
+  <div class="concept-box" data-label="Key Terms">
+    <p><strong>OCR (Optical Character Recognition)</strong> — converts scanned images to machine-readable text. Used when a document has no embedded text layer. Tools like Tesseract, Amazon Textract, and Google Document AI live here. OCR accuracy varies wildly based on scan quality and font complexity.</p>
+  </div>
+
+  <p>
+    Beyond PDFs, documents come in Word files, HTML pages, PowerPoint decks, spreadsheets, markdown, plain text, and more. Each format needs its own parser. And each parser introduces its own noise — stray characters, broken tables, garbled equations.
+  </p>
+
+  <p>
+    Good ingestion is unglamorous work. But it directly determines the ceiling on output quality. Garbage in, garbage out — this hasn't changed.
+  </p>
+
+  <div class="divider">§ chunking</div>
+
+  <h2>Step Two: Chunking — Cutting the Document Into Pieces</h2>
+
+  <p>
+    Once the text is clean, it gets broken into smaller pieces. This is called <span class="term">chunking</span>.
+  </p>
+
+  <p>
+    Why? Because even large context windows have limits, and more importantly, you don't want to retrieve an entire 300-page document when answering a single question. You want the <em>relevant</em> pieces. Chunking is how you build a system that can retrieve just what it needs.
+  </p>
+
+  <h3>Fixed-Size Chunking</h3>
+  <p>
+    The simplest strategy. Split the document every N tokens or characters. Fast, predictable, dumb. The problem is it cuts sentences and ideas in half, breaking semantic coherence.
+  </p>
+
+  <h3>Semantic / Sentence-Based Chunking</h3>
+  <p>
+    Smarter. Split at natural sentence boundaries, or even paragraph boundaries. Preserve the meaning of a complete thought in each chunk. Better for retrieval, because each chunk actually contains a coherent idea.
+  </p>
+
+  <h3>Recursive Character Splitting</h3>
+  <p>
+    Used by LangChain and similar frameworks. Splits on progressively smaller separators — first on paragraphs, then sentences, then words — until chunks are within the target size. Keeps semantic coherence while staying within token limits.
+  </p>
+
+  <h3>Overlapping Chunks</h3>
+  <p>
+    Here's a subtle one. If your chunks have no overlap, a sentence that falls at the boundary between two chunks might get split in a way that loses context. Overlapping chunks — where the end of chunk N is also the beginning of chunk N+1 — solve this by repeating a "margin" of tokens across boundaries. Typical overlap is 10–20% of chunk size.
+  </p>
+
+  <div class="concept-box" data-label="Design Choice">
+    <p>Chunk size matters enormously. Small chunks (128–256 tokens) give high retrieval precision — you pull very specific content. Large chunks (512–1024 tokens) give more surrounding context with each retrieval. Most production systems tune this based on document type and query style. There is no universal answer.<sup>[3]</sup></p>
+  </div>
+
+  <div class="divider">§ embeddings</div>
+
+  <h2>Step Three: Embeddings — Turning Text Into Math</h2>
+
+  <p>
+    This is where it gets genuinely interesting.
+  </p>
+
+  <p>
+    Each chunk of text gets passed through an <span class="term">embedding model</span>. The model converts the text into a list of numbers — a vector, usually hundreds to thousands of dimensions long. This vector is a mathematical representation of the meaning of that chunk. Not the words. The <em>meaning</em>.
+  </p>
+
+  <p>
+    Two chunks that mean similar things will have vectors that point in similar directions in that high-dimensional space. "The contract terminates on December 31st" and "The agreement ends at year's close" will be close together, even though they share no words.
+  </p>
+
+  <pre><code># Example: generating an embedding with OpenAI
+from openai import OpenAI
+client = OpenAI()
+
+response = client.embeddings.create(
+    input="The transformer architecture uses self-attention.",
+    model="text-embedding-3-large"
+)
+
+vector = response.data[0].embedding
+# Returns a list of 3072 floats — the meaning of that sentence
+print(len(vector))  # → 3072</code></pre>
+
+  <p>
+    Popular embedding models today include OpenAI's <code>text-embedding-3-large</code>, Cohere's <code>embed-v3</code>, and open-source options like Nomic Embed and E5-large. They differ in dimension count, speed, cost, and quality across different domains.
+  </p>
+
+  <div class="concept-box" data-label="Key Concept">
+    <p><strong>Cosine Similarity</strong> — the standard way to measure how close two embedding vectors are. A score of 1.0 means identical direction (same meaning). A score of 0 means no relationship. A score of -1 means opposite meanings. This is the "distance" that drives semantic search.<sup>[4]</sup></p>
+  </div>
+
+  <div class="divider">§ vector stores</div>
+
+  <h2>Step Four: Vector Databases — The AI's Filing Cabinet</h2>
+
+  <p>
+    You now have thousands of chunks, each represented as a high-dimensional vector. Where do they go?
+  </p>
+
+  <p>
+    Into a <span class="term">vector database</span> — a purpose-built system for storing vectors and searching them at speed. The search isn't keyword-based. It's <em>approximate nearest neighbor</em> (ANN) search: given a query vector, find the stored vectors most similar to it.
+  </p>
+
+  <div class="stat-row">
+    <div class="stat-cell">
+      <span class="stat-num">Pinecone</span>
+      <span class="stat-label">Managed cloud, large scale</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-num">Weaviate</span>
+      <span class="stat-label">Open-source, hybrid search</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-num">Qdrant</span>
+      <span class="stat-label">Rust-native, high perf</span>
+    </div>
+  </div>
+
+  <p>
+    Lighter options include <code>ChromaDB</code> (great for prototyping) and <code>FAISS</code> (Facebook's open-source library, used when you want to run everything locally). For applications that need SQL-style filtering alongside vector search — "find me similar chunks, but only from documents tagged as 'legal'" — hybrid databases like Weaviate or Qdrant excel.
+  </p>
+
+  <p>
+    The speed here is remarkable. A properly indexed vector database can search through millions of vectors and return the top-K most similar in milliseconds. This is why real-time document Q&A feels instant, even over massive corpora.
+  </p>
+
+  <div class="divider">§ retrieval</div>
+
+  <h2>Step Five: Retrieval — Finding What Matters</h2>
+
+  <p>
+    A user asks a question. That question gets embedded into a vector. The vector database returns the top-K most semantically similar chunks. Those chunks get passed to the language model as context for generating an answer.
+  </p>
+
+  <p>
+    This whole architecture — retrieve relevant chunks, then generate — is called <span class="term">RAG</span>. Retrieval-Augmented Generation.
+  </p>
+
+  <p>
+    RAG is arguably the most important production pattern in applied AI today. It solves the hallucination problem by grounding the model in real source material. It also solves the context window problem by only feeding in what's relevant. And it makes the system auditable — you can always trace which chunks produced which answer.
+  </p>
+
+  <!-- Pipeline diagram -->
+  <div class="pipeline" role="img" aria-label="RAG pipeline: Document → Parse → Chunk → Embed → Store → Query → Retrieve → Generate">
+    <div class="pipe-step"><span class="pipe-num">01</span>Document</div>
+    <div class="pipe-step"><span class="pipe-num">02</span>Parse + Clean</div>
+    <div class="pipe-step"><span class="pipe-num">03</span>Chunk</div>
+    <div class="pipe-step"><span class="pipe-num">04</span>Embed</div>
+    <div class="pipe-step"><span class="pipe-num">05</span>Vector Store</div>
+    <div class="pipe-step"><span class="pipe-num">06</span>Query → Retrieve</div>
+    <div class="pipe-step"><span class="pipe-num">07</span>Generate</div>
+  </div>
+
+  <h3>The Retrieval Quality Problem</h3>
+
+  <p>
+    Here's the part people don't talk about enough. Retrieval is where most RAG systems actually fail. Not generation — retrieval.
+  </p>
+
+  <p>
+    A model can only answer well from good context. If the wrong chunks get retrieved — or if the right chunks aren't retrieved because the query phrasing doesn't semantically match the document language — the generation step has nothing to work with. The model will either hallucinate or say "I don't know."
+  </p>
+
+  <p>
+    This is called the <em>retrieval precision vs. recall tradeoff</em>. Precision: did we retrieve only relevant chunks? Recall: did we retrieve all relevant chunks? Most systems tune one at the cost of the other.
+  </p>
+
+  <h3>Hybrid Retrieval</h3>
+
+  <p>
+    One of the best patterns for fixing this. Combine <strong>dense retrieval</strong> (vector / semantic similarity) with <strong>sparse retrieval</strong> (keyword-based, like BM25). Dense retrieval handles paraphrase and conceptual similarity. Sparse retrieval handles exact terms, proper nouns, and technical jargon that embeddings sometimes blur over. Combine them using <span class="term">reciprocal rank fusion</span> or a learned reranker, and you get dramatically better coverage.<sup>[5]</sup>
+  </p>
+
+  <div class="divider">§ reranking</div>
+
+  <h2>Step Six: Reranking — The Second Pass</h2>
+
+  <p>
+    Approximate nearest neighbor search is fast. But fast means approximate. To get the best results, many systems add a <span class="term">reranker</span> — a cross-encoder model that takes the query and each retrieved chunk and scores their relevance together.
+  </p>
+
+  <p>
+    This is more expensive than initial retrieval, because the reranker reads both the query and the chunk together, not just compares vectors. But it's dramatically more accurate. The typical pattern: retrieve 20–50 candidates, rerank to the top 5, feed those to the model.
+  </p>
+
+  <div class="concept-box" data-label="Architecture Pattern">
+    <p><strong>Bi-encoder vs. Cross-encoder</strong> — A bi-encoder (embedding model) encodes query and document separately, then compares vectors. Fast but coarser. A cross-encoder processes query + document together in one pass, giving much richer relevance signals. Used for reranking. Cohere Rerank and BGE-Reranker are popular choices.<sup>[6]</sup></p>
+  </div>
+
+  <div class="divider">§ generation</div>
+
+  <h2>Step Seven: Generation — The LLM Does Its Job</h2>
+
+  <p>
+    The retrieved, reranked chunks get assembled into a prompt. The language model — GPT-4, Claude, Gemini, Mistral, Llama, whatever — reads the question plus the retrieved context and generates an answer.
+  </p>
+
+  <p>
+    At this stage, prompt design matters. The classic structure is a system prompt that tells the model to only answer from the provided context, followed by the context itself, followed by the user question. This instruction — "answer only from the context below" — is doing a lot of work. It's a soft constraint against hallucination.
+  </p>
+
+  <pre><code>System:
+You are a precise document analyst. Answer the user's question 
+based ONLY on the context provided below. If the answer is not 
+in the context, say "Not found in document." Do not use outside 
+knowledge.
+
+Context:
+[CHUNK 1]: "...the non-compete clause in section 4.2 states..."
+[CHUNK 2]: "...termination triggers a 12-month restriction on..."
+
+User: What are the non-compete terms in this contract?</code></pre>
+
+  <p>
+    The model then generates from this. And because it has the actual relevant text in front of it, it can respond accurately, quote correctly, and even cite which section its answer came from.
+  </p>
+
+  <h3>Citation and Grounding</h3>
+
+  <p>
+    The best production RAG systems don't just generate answers — they generate <em>grounded</em> answers with source attribution. Each claim maps back to a specific chunk, which maps back to a specific page and document. This is the difference between an AI assistant that's useful in professional workflows and one that's just impressive at dinner parties.
+  </p>
+
+  <blockquote>
+    <p>Grounding is not a feature. It's the foundation of trust. An answer is only as reliable as its source — and the source needs to be visible, traceable, verifiable.</p>
+  </blockquote>
+
+  <div class="divider">§ hallucination</div>
+
+  <h2>Why AI Still Gets Things Wrong</h2>
+
+  <p>
+    Even with all this machinery — parsing, chunking, embedding, retrieval, reranking, grounded generation — things still fail. Here's where.
+  </p>
+
+  <h3>1. Retrieval Miss</h3>
+  <p>
+    The relevant chunk simply wasn't retrieved. Maybe the user used terminology the document didn't, the embedding model mapped them far apart, and BM25 wasn't in the pipeline to catch it. The model generates an answer anyway — from wrong or incomplete context.
+  </p>
+
+  <h3>2. Context Overload</h3>
+  <p>
+    Too much context at once. Some systems retrieve 20 chunks and dump them all in the prompt. The model, now dealing with a sea of text, may not correctly identify which parts are most relevant. Reranking helps — but so does keeping context tight.
+  </p>
+
+  <h3>3. Model Confabulation</h3>
+  <p>
+    Language models have a deep tendency to be helpful. When the context doesn't contain an answer, they sometimes reason by analogy, extrapolate, or fill in from training knowledge — producing plausible but wrong answers. Prompt instructions help constrain this, but they don't eliminate it.
+  </p>
+
+  <h3>4. Parsing Errors Upstream</h3>
+  <p>
+    Garbled ingestion creates garbled chunks which creates garbled embeddings. A poorly extracted table, an OCR error in a key number, a split sentence at a section header — these propagate silently through the pipeline and surface as confident wrong answers at generation time.
+  </p>
+
+  <div class="concept-box" data-label="Evaluation">
+    <p><strong>Measuring RAG quality</strong> — The standard framework is RAGAS (Retrieval Augmented Generation Assessment Score), which measures faithfulness (does the answer reflect the retrieved context?), answer relevancy, context recall, and context precision. Running automated eval suites on document QA pipelines is now standard practice in production teams.<sup>[7]</sup></p>
+  </div>
+
+  <div class="divider">§ advanced patterns</div>
+
+  <h2>Advanced Patterns Worth Knowing</h2>
+
+  <h3>HyDE — Hypothetical Document Embeddings</h3>
+  <p>
+    Instead of embedding the user's raw query, generate a hypothetical answer first, then embed that. Because the hypothetical answer resembles the document language more than the user's question, it often retrieves more relevant chunks. Counterintuitive. Effective.<sup>[8]</sup>
+  </p>
+
+  <h3>Multi-Hop Retrieval</h3>
+  <p>
+    Some questions can't be answered in a single retrieval step. "What does the company policy say about the vacation accrual process for contractors?" might require retrieving the policy section, then the contractor classification criteria, then the accrual table. Multi-hop retrieval chains multiple retrieve → read → re-query cycles. Think of it as the AI needing to look in the index, then turn to that page, then check a footnote.
+  </p>
+
+  <h3>Agentic RAG</h3>
+  <p>
+    Rather than one static retrieval pass, an AI agent iterates: retrieve, check if the answer is there, if not reformulate the query and retrieve again, synthesize across multiple retrieval results. This is the direction the field is moving — retrieval as a dynamic process, not a one-shot lookup.<sup>[9]</sup>
+  </p>
+
+  <h3>Long-Context vs. RAG</h3>
+  <p>
+    As context windows grow — 200K, 1M tokens — there's a genuine debate about whether RAG is still necessary or whether just dumping everything in works better. The honest answer is: both have their place. For fixed, well-known documents, long-context with careful prompt design can work well. For dynamic corpora, real-time updates, very large-scale knowledge bases, or when you need auditability, RAG still wins. The hybrid approach — long context plus RAG — is increasingly common.
+  </p>
+
+  <div class="divider">§ landscape</div>
+
+  <h2>The Current Landscape</h2>
+
+  <p>
+    The tooling here has matured fast. A year ago, building a basic RAG pipeline was a multi-week project. Today, frameworks like <strong>LangChain</strong>, <strong>LlamaIndex</strong>, and <strong>Haystack</strong> abstract the plumbing. You can have a working document Q&A system running in an afternoon.
+  </p>
+
+  <p>
+    But "working" and "production-ready" are different things. Production systems need evaluation pipelines, observability to trace exactly what was retrieved for every query, fallback strategies, chunking experiments, latency optimization, and ongoing monitoring for drift in retrieval quality as the document corpus grows.
+  </p>
+
+  <p>
+    On the model side, the frontier is moving toward natively long-context models that can absorb hundreds of thousands of tokens with less of the lost-in-the-middle degradation. Techniques like positional encoding improvements (<span class="term">RoPE</span>, <span class="term">ALiBi</span>), sparse attention, and mixture-of-experts architectures are all pushing the boundary of what a model can meaningfully process in a single pass.<sup>[10][11]</sup>
+  </p>
+
+  <div class="stat-row">
+    <div class="stat-cell">
+      <span class="stat-num">1M</span>
+      <span class="stat-label">Gemini 1.5 Pro context window</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-num">200K</span>
+      <span class="stat-label">Claude 3 context window</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-num">128K</span>
+      <span class="stat-label">GPT-4 Turbo context window</span>
+    </div>
+  </div>
+
+  <div class="divider">§ outro</div>
+
+  <h2>What This All Means</h2>
+
+  <p>
+    Here's the perceptual point of all this. When you interact with an AI that "read your document" — you're not watching a machine understand the way you understand. You're watching a pipeline: clean, chunk, embed, retrieve, rerank, generate. Each step introduces potential for error. Each step also offers a place to improve.
+  </p>
+
+  <p>
+    The reason modern document AI feels so capable is because every one of those steps has gotten dramatically better in the last two years. Better parsers. Better embedding models. Better vector search. Better rerankers. Better generation. The accuracy you see is the compounding effect of improvements across the whole stack.
+  </p>
+
+  <p>
+    And the reason it still fails — confidently, sometimes dangerously — is that each step can silently drop information, and the model generating the answer has no direct way to know what it missed.
+  </p>
+
+  <p>
+    This is why evaluation matters. Why grounding matters. Why building AI systems that can <em>show their work</em> — here's what I retrieved, here's where it came from — matters more than building systems that just sound confident.
+  </p>
+
+  <p>
+    The best document AI isn't the one that sounds the most certain. It's the one that knows exactly where its answer came from — and can show you.
+  </p>
+
+  <!-- OUTRO BOX -->
+  <div class="outro">
+    <span class="outro-title">The Bottom Line</span>
+    <p>
+      Ingesting a long document isn't one action — it's a pipeline of seven distinct operations, each one a potential point of failure and a potential point of optimization. Understanding this stack means you can debug it, tune it, and build on top of it with clarity instead of black-box intuition.
+    </p>
+    <p>
+      The future of reliable AI over documents isn't bigger models. It's better pipelines, tighter evaluation, and the discipline to always ask: <em>where did that answer actually come from?</em>
+    </p>
+  </div>
+
+  <!-- REFERENCES -->
+  <section class="references">
+    <h2>References</h2>
+    <ol class="ref-list">
+      <li>OpenAI. "GPT-4 Technical Report." arXiv:2303.08774, 2023. / Anthropic. "Claude 3 Model Card", 2024.</li>
+      <li>Liu, N. F., et al. "Lost in the Middle: How Language Models Use Long Contexts." arXiv:2307.03172, 2023.</li>
+      <li>Gao, Y., et al. "Retrieval-Augmented Generation for Large Language Models: A Survey." arXiv:2312.10997, 2023.</li>
+      <li>Reimers, N. &amp; Gurevych, I. "Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks." EMNLP 2019.</li>
+      <li>Lin, J., et al. "A Few Brief Notes on DeepImpact, COIL, and a Conceptual Framework for Information Retrieval Techniques." arXiv:2106.14807, 2021.</li>
+      <li>Nogueira, R. &amp; Cho, K. "Passage Re-ranking with BERT." arXiv:1901.04085, 2019.</li>
+      <li>Es, S., et al. "RAGAS: Automated Evaluation of Retrieval Augmented Generation." arXiv:2309.15217, 2023.</li>
+      <li>Gao, L., et al. "Precise Zero-Shot Dense Retrieval without Relevance Labels (HyDE)." arXiv:2212.10496, 2022.</li>
+      <li>Shinn, N., et al. "Reflexion: Language Agents with Verbal Reinforcement Learning." arXiv:2303.11366, 2023.</li>
+      <li>Su, J., et al. "RoFormer: Enhanced Transformer with Rotary Position Embedding." arXiv:2104.09864, 2021.</li>
+      <li>Press, O., et al. "Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation (ALiBi)." arXiv:2108.12409, 2021.</li>
+    </ol>
+  </section>
+
+</article>
+</body>
+</html>
