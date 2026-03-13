@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- ═══════════════════════════ SEO FOUNDATION ═══════════════════════════ -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!-- Primary Meta -->
+  <title>The Index Project — Ideas Worth Indexing</title>
+  <meta name="description" content="The Index Project is a long-form blog covering AI, technology, and the ideas quietly reshaping how we think. Deep dives, clearly written." />
+  <meta name="keywords" content="AI, technology, long-form writing, deep dives, language models, tech essays" />
+  <meta name="author" content="The Index Project" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://theindexproject.com/" />
+
+  <!-- Open Graph (Facebook, LinkedIn, WhatsApp previews) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://theindexproject.com/" />
+  <meta property="og:title" content="The Index Project — Ideas Worth Indexing" />
+  <meta property="og:description" content="Long-form writing on AI, technology, and the ideas reshaping how we think. Deep dives, clearly written." />
+  <meta property="og:image" content="https://theindexproject.com/og-image.png" />
+  <meta property="og:site_name" content="The Index Project" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@theindexproject" />
+  <meta name="twitter:title" content="The Index Project — Ideas Worth Indexing" />
+  <meta name="twitter:description" content="Long-form writing on AI, technology, and the ideas reshaping how we think." />
+  <meta name="twitter:image" content="https://theindexproject.com/og-image.png" />
+
+  <!-- Schema.org Structured Data (helps Google understand your site) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "name": "The Index Project",
+    "description": "Long-form writing on AI, technology, and the ideas reshaping how we think.",
+    "url": "https://theindexproject.com",
+    "publisher": {
+      "@type": "Organization",
+      "name": "The Index Project",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://theindexproject.com/logo.png"
+      }
+    },
+    "inLanguage": "en-US"
+  }
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ════════════════════ DESIGN TOKENS ════════════════════ */
+    :root {
+      --paper:     #f4efe6;
+      --paper-2:   #ede7db;
+      --ink:       #0e0d0b;
+      --ink-2:     #2a2722;
+      --muted:     #7a7060;
+      --border:    #d5cdbf;
+      --accent:    #e84b2c;
+      --accent-2:  #c93d21;
+      --highlight: #ffd84d;
+      --white:     #ffffff;
+      --mono:      'JetBrains Mono', monospace;
+      --serif:     'Fraunces', Georgia, serif;
+      --display:   'Bebas Neue', sans-serif;
+    }
+
+    /* ════════════════════ RESET ════════════════════ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    img  { display: block; max-width: 100%; }
+    a    { color: inherit; text-decoration: none; }
+    ul   { list-style: none; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--serif);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ════════════════════ UTILITIES ════════════════════ */
+    .mono {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .accent { color: var(--accent); }
+
+    /* ════════════════════ HEADER / NAV ════════════════════ */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: var(--paper);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5%;
+      height: 62px;
+      transition: box-shadow 0.3s ease;
+    }
+    .site-header.scrolled {
+      box-shadow: 0 2px 24px rgba(0,0,0,0.07);
+    }
+
+    .logo {
+      font-family: var(--display);
+      font-size: 1.55rem;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+    }
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    .nav-rss {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.8rem;
+      border-radius: 2px;
+      color: var(--muted) !important;
+      transition: border-color 0.2s, color 0.2s !important;
+    }
+    .nav-rss:hover {
+      border-color: var(--accent) !important;
+      color: var(--accent) !important;
+    }
+    .rss-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* ════════════════════ HERO ════════════════════ */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding-top: 62px;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    /* left — identity */
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 6rem 5% 5rem;
+      border-right: 1px solid var(--border);
+      position: relative;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: slideUp 0.8s ease 0.1s forwards;
+    }
+
+    .hero-wordmark {
+      font-family: var(--display);
+      font-size: clamp(4.5rem, 8vw, 7.5rem);
+      line-height: 0.92;
+      letter-spacing: 0.01em;
+      color: var(--ink);
+      opacity: 0;
+      animation: slideUp 0.8s ease 0.2s forwards;
+    }
+
+    .hero-wordmark .line-accent {
+      color: var(--accent);
+      display: block;
+    }
+
+    .hero-tagline {
+      margin-top: 2.5rem;
+      font-family: var(--serif);
+      font-weight: 300;
+      font-size: 1.05rem;
+      line-height: 1.65;
+      color: var(--muted);
+      max-width: 380px;
+      opacity: 0;
+      animation: slideUp 0.8s ease 0.35s forwards;
+    }
+
+    .hero-meta {
+      margin-top: 3.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      opacity: 0;
+      animation: slideUp 0.8s ease 0.5s forwards;
+    }
+
+    .hero-stat {
+      padding-right: 2.5rem;
+      border-right: 1px solid var(--border);
+    }
+    .hero-stat:last-child {
+      padding-right: 0;
+      padding-left: 2.5rem;
+      border-right: none;
+    }
+    .hero-stat .num {
+      font-family: var(--display);
+      font-size: 2.4rem;
+      color: var(--ink);
+      line-height: 1;
+      display: block;
+    }
+    .hero-stat .label {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      color: var(--muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-top: 0.2rem;
+      display: block;
+    }
+
+    /* corner rule decoration */
+    .corner-rule {
+      position: absolute;
+      top: calc(62px + 3rem);
+      right: -1px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      opacity: 0.18;
+    }
+    .corner-rule span {
+      display: block;
+      height: 1px;
+      background: var(--ink);
+    }
+
+    /* right — featured post */
+    .hero-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 6rem 5% 5rem;
+      position: relative;
+      background: var(--paper);
+    }
+
+    .featured-label {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: var(--muted);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      opacity: 0;
+      animation: slideUp 0.8s ease 0.3s forwards;
+    }
+    .featured-label::before {
+      content: '';
+      display: block;
+      width: 28px; height: 1px;
+      background: var(--accent);
+    }
+
+    .featured-title {
+      font-family: var(--display);
+      font-size: clamp(2.2rem, 3.5vw, 3.4rem);
+      line-height: 1.0;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+      max-width: 500px;
+      opacity: 0;
+      animation: slideUp 0.8s ease 0.45s forwards;
+    }
+
+    .featured-excerpt {
+      margin-top: 1.5rem;
+      font-weight: 300;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 440px;
+      opacity: 0;
+      animation: slideUp 0.8s ease 0.6s forwards;
+    }
+
+    .featured-tags {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 1.8rem;
+      opacity: 0;
+      animation: slideUp 0.8s ease 0.7s forwards;
+    }
+    .tag {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.28rem 0.7rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 2px;
+    }
+
+    .read-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-top: 2.5rem;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink);
+      border-bottom: 1px solid var(--ink);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+      opacity: 0;
+      animation: slideUp 0.8s ease 0.8s forwards;
+    }
+    .read-link:hover { color: var(--accent); border-color: var(--accent); }
+    .read-link svg { transition: transform 0.2s; }
+    .read-link:hover svg { transform: translateX(4px); }
+
+    /* vertical issue number */
+    .issue-mark {
+      position: absolute;
+      top: calc(62px + 3rem);
+      right: 5%;
+      font-family: var(--display);
+      font-size: 7rem;
+      color: var(--border);
+      line-height: 1;
+      user-select: none;
+      letter-spacing: -0.02em;
+    }
+
+    /* ════════════════════ SECTION HEADER ════════════════════ */
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 3.5rem 5% 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-family: var(--display);
+      font-size: 1.9rem;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+    }
+
+    .section-link {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: color 0.2s;
+    }
+    .section-link:hover { color: var(--accent); }
+
+    /* ════════════════════ ARTICLE INDEX ════════════════════ */
+    .article-index {
+      padding: 0 5%;
+    }
+
+    .article-row {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      align-items: start;
+      gap: 0 2.5rem;
+      padding: 2.2rem 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.2s;
+      margin: 0 -5%;
+      padding-left: 5%;
+      padding-right: 5%;
+      position: relative;
+    }
+    .article-row::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 0;
+      background: var(--accent);
+      transition: width 0.25s ease;
+    }
+    .article-row:hover::before { width: 3px; }
+    .article-row:hover { background: rgba(232,75,44,0.025); }
+
+    .article-num {
+      font-family: var(--display);
+      font-size: 2.2rem;
+      color: var(--border);
+      line-height: 1;
+      transition: color 0.2s;
+      padding-top: 2px;
+    }
+    .article-row:hover .article-num { color: var(--accent); }
+
+    .article-body { min-width: 0; }
+
+    .article-category {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.45rem;
+    }
+
+    .article-title {
+      font-family: var(--display);
+      font-size: 1.5rem;
+      letter-spacing: 0.02em;
+      line-height: 1.1;
+      color: var(--ink);
+      transition: color 0.2s;
+      margin-bottom: 0.5rem;
+    }
+    .article-row:hover .article-title { color: var(--accent); }
+
+    .article-excerpt {
+      font-weight: 300;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .article-tags {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: 0.9rem;
+    }
+
+    .article-meta {
+      text-align: right;
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+    .article-date {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      display: block;
+      text-transform: uppercase;
+    }
+    .article-read-time {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--border);
+      display: block;
+      margin-top: 0.3rem;
+    }
+
+    /* ════════════════════ MARQUEE ════════════════════ */
+    .marquee-wrap {
+      background: var(--ink);
+      overflow: hidden;
+      padding: 1rem 0;
+      white-space: nowrap;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .marquee-track {
+      display: inline-block;
+      animation: marquee 28s linear infinite;
+    }
+    .marquee-item {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      padding: 0 3rem;
+    }
+    .marquee-item .dot {
+      color: var(--accent);
+      margin-right: 3rem;
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ════════════════════ TOPICS GRID ════════════════════ */
+    .topics-section {
+      padding: 4rem 5%;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topics-label {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    .topics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .topic-cell {
+      background: var(--paper);
+      padding: 2rem 1.5rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .topic-cell:hover { background: var(--ink); }
+    .topic-cell:hover .topic-name { color: #fff; }
+    .topic-cell:hover .topic-count { color: var(--accent); }
+    .topic-cell:hover .topic-arrow { opacity: 1; color: #fff; }
+
+    .topic-name {
+      font-family: var(--display);
+      font-size: 1.6rem;
+      letter-spacing: 0.03em;
+      color: var(--ink);
+      display: block;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .topic-count {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      margin-top: 0.5rem;
+      display: block;
+      transition: color 0.2s;
+    }
+    .topic-arrow {
+      position: absolute;
+      bottom: 1.5rem; right: 1.5rem;
+      font-family: var(--mono);
+      font-size: 1rem;
+      color: var(--border);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    /* ════════════════════ NEWSLETTER ════════════════════ */
+    .newsletter-section {
+      background: var(--ink);
+      padding: 5rem 5%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .nl-left {}
+    .nl-eyebrow {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+    }
+    .nl-title {
+      font-family: var(--display);
+      font-size: clamp(2.5rem, 4vw, 3.8rem);
+      line-height: 0.95;
+      letter-spacing: 0.02em;
+      color: #fff;
+      margin-bottom: 1.2rem;
+    }
+    .nl-desc {
+      font-weight: 300;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.45);
+      max-width: 380px;
+    }
+
+    .nl-right {}
+    .nl-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .nl-input-row {
+      display: flex;
+      gap: 0;
+    }
+    .nl-input {
+      flex: 1;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-right: none;
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      padding: 1rem 1.2rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .nl-input::placeholder { color: rgba(255,255,255,0.2); }
+    .nl-input:focus { border-color: rgba(255,255,255,0.3); }
+    .nl-btn {
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 1rem 1.5rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .nl-btn:hover { background: var(--accent-2); }
+    .nl-note {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.2);
+      text-transform: uppercase;
+    }
+    .nl-success {
+      display: none;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      padding: 1rem 0;
+    }
+
+    /* ════════════════════ FOOTER ════════════════════ */
+    .site-footer {
+      padding: 2.5rem 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-logo {
+      font-family: var(--display);
+      font-size: 1.1rem;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+    }
+    .footer-logo span { color: var(--accent); }
+
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+    }
+    .footer-links a {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--accent); }
+
+    .footer-copy {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      color: var(--border);
+      text-transform: uppercase;
+    }
+
+    /* ════════════════════ ANIMATIONS ════════════════════ */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ════════════════════ MOBILE ════════════════════ */
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-left { padding: 3rem 5% 2.5rem; border-right: none; border-bottom: 1px solid var(--border); }
+      .hero-right { padding: 3rem 5% 3rem; }
+      .corner-rule { display: none; }
+      .issue-mark { font-size: 4rem; top: calc(62px + 1.5rem); }
+      .topics-grid { grid-template-columns: repeat(2, 1fr); }
+      .newsletter-section { grid-template-columns: 1fr; gap: 2.5rem; }
+      .article-row { grid-template-columns: 55px 1fr; }
+      .article-meta { display: none; }
+      .nav-links .nav-rss { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      .nav-links { gap: 1.5rem; }
+      .nav-links a:not(.nav-rss) { display: none; }
+      .topics-grid { grid-template-columns: 1fr 1fr; }
+      .footer-links { display: none; }
+      .hero-meta { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+      .hero-stat { padding-right: 0; border-right: none; }
+      .hero-stat:last-child { padding-left: 0; }
+    }
+  </style>
+
+</head>
+<body>
+
+  <!-- ═══════════════════════ NAV ═══════════════════════ -->
+  <header class="site-header" id="siteHeader">
+    <a href="/" class="logo" aria-label="The Index Project — home">
+      The Index<span>.</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a href="/archive">Archive</a>
+      <a href="/topics">Topics</a>
+      <a href="/about">About</a>
+      <a href="/feed.xml" class="nav-rss" aria-label="RSS Feed">
+        <span class="rss-dot"></span>
+        <span class="mono" style="font-size:0.6rem;">RSS</span>
+      </a>
+    </nav>
+  </header>
+
+  <!-- ═══════════════════════ HERO ═══════════════════════ -->
+  <main>
+    <section class="hero" aria-label="Site introduction and featured post">
+
+      <!-- LEFT: Identity -->
+      <div class="hero-left">
+        <div class="corner-rule" aria-hidden="true">
+          <span style="width:80px;"></span>
+          <span style="width:50px;"></span>
+          <span style="width:30px;"></span>
+        </div>
+
+        <p class="hero-eyebrow mono">Est. 2024 · Long-form · Technology</p>
+
+        <h1 class="hero-wordmark">
+          The
+          <span class="line-accent">Index</span>
+          Project
+        </h1>
+
+        <p class="hero-tagline">
+          Ideas worth indexing. Deep dives into AI, technology, and the systems quietly reshaping how we think — written with precision, not haste.
+        </p>
+
+        <div class="hero-meta" aria-label="Site statistics">
+          <div class="hero-stat">
+            <span class="num">12</span>
+            <span class="label">Deep Dives</span>
+          </div>
+          <div class="hero-stat">
+            <span class="num">~18K</span>
+            <span class="label">Avg. Words</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Featured Post -->
+      <div class="hero-right">
+        <span class="issue-mark" aria-hidden="true">01</span>
+
+        <p class="featured-label mono">Featured Read</p>
+
+        <h2 class="featured-title">
+          How AI Reads 1,000 Pages in Seconds
+        </h2>
+
+        <p class="featured-excerpt">
+          What actually happens inside an AI system when you throw a massive document at it — the science, the engineering, and why it still gets things wrong. A full breakdown of the RAG pipeline.
+        </p>
+
+        <div class="featured-tags">
+          <span class="tag">RAG</span>
+          <span class="tag">Embeddings</span>
+          <span class="tag">Transformers</span>
+          <span class="tag">18 min</span>
+        </div>
+
+        <a href="/how-ai-reads-documents" class="read-link" aria-label="Read: How AI Reads 1,000 Pages in Seconds">
+          Read the piece
+          <svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M1 5H13M9 1L13 5L9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════ MARQUEE ═══════════════════════ -->
+    <div class="marquee-wrap" aria-hidden="true">
+      <div class="marquee-track">
+        <!-- Two identical runs for seamless loop -->
+        <span class="marquee-item">AI Systems <span class="dot">·</span></span>
+        <span class="marquee-item">Retrieval-Augmented Generation <span class="dot">·</span></span>
+        <span class="marquee-item">Language Models <span class="dot">·</span></span>
+        <span class="marquee-item">Context Windows <span class="dot">·</span></span>
+        <span class="marquee-item">Vector Databases <span class="dot">·</span></span>
+        <span class="marquee-item">Transformer Architecture <span class="dot">·</span></span>
+        <span class="marquee-item">Deep Dives <span class="dot">·</span></span>
+        <span class="marquee-item">The Index Project <span class="dot">·</span></span>
+        <span class="marquee-item">AI Systems <span class="dot">·</span></span>
+        <span class="marquee-item">Retrieval-Augmented Generation <span class="dot">·</span></span>
+        <span class="marquee-item">Language Models <span class="dot">·</span></span>
+        <span class="marquee-item">Context Windows <span class="dot">·</span></span>
+        <span class="marquee-item">Vector Databases <span class="dot">·</span></span>
+        <span class="marquee-item">Transformer Architecture <span class="dot">·</span></span>
+        <span class="marquee-item">Deep Dives <span class="dot">·</span></span>
+        <span class="marquee-item">The Index Project <span class="dot">·</span></span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════ ARTICLE INDEX ═══════════════════════ -->
+    <div class="section-header reveal">
+      <h2 class="section-title">All Entries</h2>
+      <a href="/archive" class="section-link" aria-label="View full archive">
+        Full Archive
+        <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M1 4H11M7.5 1L11 4L7.5 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="article-index" role="list" aria-label="Article index">
+
+      <!-- Article 1 (current featured) -->
+      <article class="article-row reveal" role="listitem" onclick="window.location='/how-ai-reads-documents'" tabindex="0" aria-label="How AI Reads 1,000 Pages in Seconds">
+        <div class="article-num" aria-hidden="true">01</div>
+        <div class="article-body">
+          <p class="article-category mono">AI Systems · Deep Dive</p>
+          <h3 class="article-title">How AI Reads 1,000 Pages in Seconds</h3>
+          <p class="article-excerpt">What actually happens inside an AI system when you throw a massive document at it — the science, the engineering, and why it still gets things wrong.</p>
+          <div class="article-tags">
+            <span class="tag">RAG</span>
+            <span class="tag">Embeddings</span>
+            <span class="tag">Transformers</span>
+          </div>
+        </div>
+        <div class="article-meta">
+          <span class="article-date">Jun 2025</span>
+          <span class="article-read-time">18 min</span>
+        </div>
+      </article>
+
+      <!-- Placeholder Article 2 -->
+      <article class="article-row reveal" role="listitem" onclick="window.location='#'" tabindex="0" aria-label="Coming soon article 2">
+        <div class="article-num" aria-hidden="true">02</div>
+        <div class="article-body">
+          <p class="article-category mono">Coming Soon</p>
+          <h3 class="article-title" style="color: var(--muted);">The Attention Mechanism, Explained Without Math</h3>
+          <p class="article-excerpt">How a 2017 paper changed everything — and why "attention" is the most important word in modern AI.</p>
+          <div class="article-tags">
+            <span class="tag">Transformers</span>
+            <span class="tag">Architecture</span>
+          </div>
+        </div>
+        <div class="article-meta">
+          <span class="article-date">Soon</span>
+          <span class="article-read-time">— min</span>
+        </div>
+      </article>
+
+      <!-- Placeholder Article 3 -->
+      <article class="article-row reveal" role="listitem" onclick="window.location='#'" tabindex="0" aria-label="Coming soon article 3">
+        <div class="article-num" aria-hidden="true">03</div>
+        <div class="article-body">
+          <p class="article-category mono">Coming Soon</p>
+          <h3 class="article-title" style="color: var(--muted);">Why Hallucination Is Not a Bug</h3>
+          <p class="article-excerpt">Language models don't malfunction when they hallucinate — they're doing exactly what they were trained to do. That's the uncomfortable part.</p>
+          <div class="article-tags">
+            <span class="tag">LLMs</span>
+            <span class="tag">Safety</span>
+          </div>
+        </div>
+        <div class="article-meta">
+          <span class="article-date">Soon</span>
+          <span class="article-read-time">— min</span>
+        </div>
+      </article>
+
+      <!-- Placeholder Article 4 -->
+      <article class="article-row reveal" role="listitem" onclick="window.location='#'" tabindex="0" aria-label="Coming soon article 4">
+        <div class="article-num" aria-hidden="true">04</div>
+        <div class="article-body">
+          <p class="article-category mono">Coming Soon</p>
+          <h3 class="article-title" style="color: var(--muted);">The Economics of Inference</h3>
+          <p class="article-excerpt">Running AI at scale isn't a technology problem — it's a cost problem. A breakdown of what it actually costs to serve a billion queries.</p>
+          <div class="article-tags">
+            <span class="tag">Infrastructure</span>
+            <span class="tag">Business</span>
+          </div>
+        </div>
+        <div class="article-meta">
+          <span class="article-date">Soon</span>
+          <span class="article-read-time">— min</span>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- ═══════════════════════ TOPICS ═══════════════════════ -->
+    <section class="topics-section reveal" aria-label="Browse by topic">
+      <p class="topics-label mono">Browse by Topic</p>
+      <div class="topics-grid" role="list">
+        <a href="/topics/ai-systems" class="topic-cell" role="listitem" aria-label="AI Systems - 3 entries">
+          <span class="topic-name">AI Systems</span>
+          <span class="topic-count mono">3 entries</span>
+          <span class="topic-arrow" aria-hidden="true">→</span>
+        </a>
+        <a href="/topics/architecture" class="topic-cell" role="listitem" aria-label="Architecture - 2 entries">
+          <span class="topic-name">Architecture</span>
+          <span class="topic-count mono">2 entries</span>
+          <span class="topic-arrow" aria-hidden="true">→</span>
+        </a>
+        <a href="/topics/infrastructure" class="topic-cell" role="listitem" aria-label="Infrastructure - 2 entries">
+          <span class="topic-name">Infra</span>
+          <span class="topic-count mono">2 entries</span>
+          <span class="topic-arrow" aria-hidden="true">→</span>
+        </a>
+        <a href="/topics/business" class="topic-cell" role="listitem" aria-label="Business - 1 entry">
+          <span class="topic-name">Business</span>
+          <span class="topic-count mono">1 entry</span>
+          <span class="topic-arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ NEWSLETTER ═══════════════════════ -->
+    <section class="newsletter-section reveal" aria-label="Newsletter signup">
+      <div class="nl-left">
+        <p class="nl-eyebrow mono">Stay in the index</p>
+        <h2 class="nl-title">New Pieces,<br>When They're Ready.</h2>
+        <p class="nl-desc">No cadence. No filler. Just the next deep dive — delivered when it's actually done, not when a calendar says so.</p>
+      </div>
+      <div class="nl-right">
+        <div class="nl-form" role="form" aria-label="Newsletter signup form">
+          <div class="nl-input-row">
+            <input
+              type="email"
+              class="nl-input"
+              id="emailInput"
+              placeholder="your@email.com"
+              aria-label="Email address"
+              autocomplete="email"
+            />
+            <button class="nl-btn" onclick="handleSubscribe()" aria-label="Subscribe to newsletter">Subscribe</button>
+          </div>
+          <p class="nl-note mono">No spam. Unsubscribe any time. No ads, ever.</p>
+          <p class="nl-success" id="nlSuccess" role="status">✓ &nbsp;You're indexed. Next piece comes to you.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-logo">The Index<span>.</span></div>
+    <nav class="footer-links" aria-label="Footer navigation">
+      <a href="/archive">Archive</a>
+      <a href="/about">About</a>
+      <a href="/feed.xml">RSS</a>
+    </nav>
+    <p class="footer-copy mono">© 2025 The Index Project</p>
+  </footer>
+
+  <!-- ═══════════════════════ JS ═══════════════════════ -->
+  <script>
+    // ── Sticky header shadow on scroll
+    const header = document.getElementById('siteHeader');
+    window.addEventListener('scroll', () => {
+      header.classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+
+    // ── Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          // stagger by index within a group
+          entry.target.style.transitionDelay = `${(i % 4) * 0.08}s`;
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => observer.observe(el));
+
+    // ── Keyboard accessibility for article rows
+    document.querySelectorAll('.article-row').forEach(row => {
+      row.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          row.click();
+        }
+      });
+    });
+
+    // ── Newsletter handler
+    function handleSubscribe() {
+      const input = document.getElementById('emailInput');
+      const success = document.getElementById('nlSuccess');
+      const email = input.value.trim();
+      const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+      if (!valid) {
+        input.style.borderColor = '#e84b2c';
+        input.focus();
+        setTimeout(() => { input.style.borderColor = ''; }, 1800);
+        return;
+      }
+
+      // Replace with your actual email service (Mailchimp, Buttondown, ConvertKit, etc.)
+      // For now: show success state
+      input.closest('.nl-input-row').style.display = 'none';
+      success.style.display = 'block';
+    }
+
+    // Allow Enter key in email field
+    document.getElementById('emailInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleSubscribe();
+    });
+  </script>
+
+</body>
+</html>
